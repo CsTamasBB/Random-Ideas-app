@@ -45,17 +45,24 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
     try {
-        const updatedIdea = await Idea.findByIdAndUpdate(
-            req.params.id,
-            {
-                $set: {
-                    text: req.body.text,
-                    tag: req.body.tag,
-                }
-            },
-            { new: true }
-        );
-        res.json( {success: true, data: updatedIdea});
+        const idea = await Idea.findById(req.params.id);
+        //validation
+        if (idea.username === req.body.username) {
+            const updatedIdea = await Idea.findByIdAndUpdate(
+                req.params.id,
+                {
+                    $set: {
+                        text: req.body.text,
+                        tag: req.body.tag,
+                    }
+                },
+                { new: true }
+            );
+            return res.json( {success: true, data: updatedIdea});
+        }
+        //invalid
+        res.status(403).json({ success: false, error: 'Unauthorized user'});
+        
     } catch (error) {
         console.log(error);
         res.status(500).json({ success: false, error: 'Something went wrong'});
@@ -66,8 +73,15 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
     try {
-        await Idea.findByIdAndDelete(req.params.id);
-        res.json( {success: true, data: {}});
+        const idea = await Idea.findById(req.params.id);
+        //validation
+        if (idea.username === req.body.username) {
+            await Idea.findByIdAndDelete(req.params.id);
+            res.json( {success: true, data: {}});
+        }
+        //invalid
+        res.status(403).json({ success: false, error: 'Unauthorized user'});
+
     } catch (error) {
         console.log(error);
         res.status(500).json({ success: false, error: 'Something went wrong'});
